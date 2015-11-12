@@ -16,6 +16,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -41,6 +43,13 @@ public class MyIntentService extends IntentService {
      * @see IntentService
      */
     // TODO: Customize helper method
+
+    String newString;
+    String param2 ;
+
+
+
+
     public static void startActionFoo(Context context, String param1, String param2) {
         Intent intent = new Intent(context, MyIntentService.class);
         intent.setAction(ACTION_FOO);
@@ -78,7 +87,7 @@ public class MyIntentService extends IntentService {
         if (intent != null) {
             final String action = intent.getAction();
 
-            String newString;
+           // String newString; just commented out to try and make update file global values to run
             Bundle extras = intent.getExtras();
             if(extras == null) {
                 newString= null;
@@ -95,11 +104,23 @@ public class MyIntentService extends IntentService {
             if (ACTION_FOO.equals(action)) {
                 final String param1 = intent.getStringExtra(EXTRA_PARAM1);
                 final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                try {
-                    handleActionFoo(newString, param2);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
+
+
+              /*  MyTimerTask myTask = new MyTimerTask();
+                Timer myTimer = new Timer();
+                myTimer.schedule(myTask, 5000);
+                */
+
+                Timer MyTimer = new Timer("alertTimer",true);
+                MyTimerTask TimerTask = new MyTimerTask();
+                MyTimer.schedule(TimerTask, 1000L, 15 * 1000L);
+
+
+
+
+
+
             } else if (ACTION_BAZ.equals(action)) {
                 final String param1 = intent.getStringExtra(EXTRA_PARAM1);
                 final String param2 = intent.getStringExtra(EXTRA_PARAM2);
@@ -110,21 +131,35 @@ public class MyIntentService extends IntentService {
 
 
     }
+    public class MyTimerTask extends TimerTask
+    {
+
+        @Override
+        public void run() {
+            try {
+                updateFile(newString, param2);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+    }
 
     /**
      * Handle action Foo in the provided background thread with the provided
      * parameters.
      */
-    private void handleActionFoo(String param1, String param2) throws IOException {
-        // TODO: Handle action Foo
+    private void updateFile(String param1, String param2) throws IOException {
+
         System.out.println("action Started Url needed " + param1);
 
         //final String  urlStr = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22GOOG%22)%0A%09%09&env=http%3A%2F%2Fdatatables.org%2Falltables.env&format=json" ;
         // final String  urlStr = "http://www.google.com";
         final String urlStr = "http://finance.yahoo.com/webservice/v1/symbols/GOOG/quote?format=json&view=basic";
-       // while (param1.equals("www.google.com")) {
 
-         (new Thread (new Runnable() {
+
+         Thread t  = new Thread (new Runnable() {
             @Override
             public void run() {
                 try {
@@ -139,46 +174,24 @@ public class MyIntentService extends IntentService {
                         Log.d("MainActivity", "read from web " + line);
                         full += line + "\n";
 
+
                     }
                     System.out.println(full);
 
 
                 } catch (MalformedURLException e) {
-                    // TODO Auto-generated catch block
+
                     e.printStackTrace();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
+
                     e.printStackTrace();
                 }
 
             }
-        })).start();
+        });
 
+            t.start();
 
-   // }
-/*
-
-        String sUrl = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22GOOG%22)%0A%09%09&env=http%3A%2F%2Fdatatables.org%2Falltables.env&format=json";
-        URL url = new URL(sUrl);
-
-        URLConnection conn = url.openConnection();
-        conn.setDoOutput(true);
-
-        BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));//, Charset.forName("ISO-8859-1")));
-
-        String res = "";
-
-        String line;
-        while ((line = rd.readLine()) != null) {
-            res += line;
-        }
-
-        rd.close();
-
-
-        System.out.println(res); */
-
-            //throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**

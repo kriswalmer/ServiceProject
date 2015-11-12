@@ -39,6 +39,8 @@ public class MainActivity extends Activity {
                 ServiceIntent.putExtra("STRING_I_NEED", param1);
 
                 ServiceIntent.setAction("edu.temple.tue80717.serviceproject.action.FOO");
+
+
                 startService(ServiceIntent);
 
 
